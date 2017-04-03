@@ -45,23 +45,12 @@ sub visitor_count {
     my ( $schema, $date ) = @_;
     return unless $date;
 
-    my $rs = $schema->resultset('Order')->search( undef, { join => 'booking' } )->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
+    my $rs = $schema->resultset('Order')->search( undef, { join => 'booking' } )
+        ->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
 
     my %visitor = (
-        male => {
-            reserved  => 0,
-            visited   => 0,
-            unvisited => 0,
-            rented    => 0,
-            bestfit   => 0,
-        },
-        female => {
-            reserved  => 0,
-            visited   => 0,
-            unvisited => 0,
-            rented    => 0,
-            bestfit   => 0,
-        },
+        male   => { reserved => 0, visited => 0, unvisited => 0, rented => 0, bestfit => 0, },
+        female => { reserved => 0, visited => 0, unvisited => 0, rented => 0, bestfit => 0, },
     );
 
     while ( my $order = $rs->next ) {
@@ -100,7 +89,7 @@ sub event_wings_count {
     return unless $date;
 
     my $storage = $schema->storage;
-    my $sth = $storage->dbh_do(
+    my $sth     = $storage->dbh_do(
         sub {
             my ( $storage, $dbh, @args ) = @_;
             my $sql = q{
@@ -138,40 +127,26 @@ sub event_wings_count {
                 };
 
             my $sth = $dbh->prepare($sql);
-            my $rv = $sth->execute($date->ymd);
+            my $rv  = $sth->execute( $date->ymd );
 
             return $sth;
         }
     );
 
     my %visitor = (
-        male => {
-            visited   => 0,
-            unvisited => 0,
-        },
-        female => {
-            visited   => 0,
-            unvisited => 0,
-        },
-        10 => {
-            visited   => 0,
-            unvisited => 0,
-        },
-        20 => {
-            visited   => 0,
-            unvisited => 0,
-        },
-        30 => {
-            visited   => 0,
-            unvisited => 0,
-        },
+        male   => { visited => 0, unvisited => 0, },
+        female => { visited => 0, unvisited => 0, },
+        10     => { visited => 0, unvisited => 0, },
+        20     => { visited => 0, unvisited => 0, },
+        30     => { visited => 0, unvisited => 0, },
     );
 
-    while(my $data = $sth->fetchrow_hashref ) {
-        my $label = $data->{is_coupon_use} == 1 ? 'visited' : 'unvisited';
+    while ( my $data = $sth->fetchrow_hashref ) {
+        my $label = $data->{is_visit} == 1 ? 'visited' : 'unvisited';
+        next unless $data->{is_coupon_use};
 
-        $visitor{$data->{gender}}{$label}++;
-        $visitor{$data->{age_group}}{$label}++;
+        $visitor{ $data->{gender} }{$label}++;
+        $visitor{ $data->{age_group} }{$label}++;
     }
 
     return \%visitor;
