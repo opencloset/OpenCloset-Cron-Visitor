@@ -43,7 +43,6 @@ sub visitor_count {
     my ( $schema, $date ) = @_;
     return unless $date;
 
-    my $parser = $schema->storage->datetime_parser;
     my $rs = $schema->resultset('Order')->search( undef, { join => 'booking' } )->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
 
     my %visitor = (
