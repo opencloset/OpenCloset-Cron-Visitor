@@ -99,13 +99,50 @@ sub event_wings_count {
     my ( $schema, $date ) = @_;
     return unless $date;
 
-    my $rs = $schema->resultset('Order')->search(
-        {
-            'me.status_id' => { 'not in' => [ $NOT_VISITED, $RESERVATED ] },
-            'coupon.status' => { -in => [ 'used', 'reserved', 'provided' ] },
-        },
-        { join => [qw/booking coupon/] }
-    )->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
+    my $storage = $schema->storage;
+    my $sth = $storage->dbh_do(
+        sub {
+            my ( $storage, $dbh, @args ) = @_;
+            my $sql = q{
+                SELECT
+                    *
+                FROM
+                    (
+                        SELECT
+                            a.`date`                                        AS 'booking_date'
+                            ,b.`id`                                         AS 'order_id'
+                            ,YEAR(a.`date`)                                 AS 'booking_year'
+                            ,MONTH(a.`date`)                                AS 'booking_month'
+                            ,DAY(a.`date`)                                  AS 'booking_day'
+                            ,IF(b.status_id = 12 OR b.status_id = 14, 0, 1) AS 'is_visit'
+                            ,d.gender                                       AS 'gender'
+                            ,d.birth                                        AS 'birth'
+                            ,YEAR(NOW()) - d.birth                          AS 'age'
+                            ,TRUNCATE(YEAR(NOW()) - d.birth, -1)            AS 'age_group'
+                            ,IF(b.`coupon_id` IS NOT NULL, 1, 0)            AS 'is_coupon_use'
+                            ,e.`id`                                         AS 'coupon_id'
+                            ,e.`update_date`                                AS 'coupon_date'
+                            ,e.`status`                                     AS 'coupon_status'
+                            ,SUBSTRING_INDEX(e.desc, '|', 1)                AS 'coupon_type'
+                            ,IFNULL(a.`date` - e.`update_date`,0)           AS 'booking_coupon_issue_diff'
+                        FROM
+                            `booking` AS a
+                            INNER JOIN `order`      AS b ON ( a.id = b.booking_id )
+                            INNER JOIN `user`       AS c ON ( b.user_id = c.id )
+                            INNER JOIN `user_info`  AS d ON ( c.id = d.user_id )
+                            LEFT  JOIN `coupon`     AS e ON ( b.coupon_id = e.id )
+                    ) AS x
+                WHERE
+                    `booking_coupon_issue_diff` >= -21600
+                    AND DATE(`booking_date`) = ?
+                };
+
+            my $sth = $dbh->prepare($sql);
+            my $rv = $sth->execute($date->ymd);
+
+            return $sth;
+        }
+    );
 
     my %visitor = (
         male => {
@@ -130,28 +167,11 @@ sub event_wings_count {
         },
     );
 
-    my $year = DateTime->now->year;
-    while ( my $order = $rs->next ) {
-        my $user      = $order->user;
-        my $user_info = $user->user_info;
-        next unless $user_info;
+    while(my $data = $sth->fetchrow_hashref ) {
+        my $label = $data->{is_coupon_use} == 1 ? 'visited' : 'unvisited';
 
-        my $gender = $user_info->gender;
-        next unless $gender;
-
-        my $birth = $user_info->birth;
-        my $age = int( ( $year - $birth ) / 10 ) * 10;
-
-        my $coupon = $order->coupon;
-        my $coupon_status = $coupon->status || '';
-        if ( $coupon_status eq 'used' ) {
-            ++$visitor{$gender}{visited};
-            ++$visitor{$age}{visited};
-        }
-        else {
-            ++$visitor{$gender}{unvisited};
-            ++$visitor{$age}{unvisited};
-        }
+        $visitor{$data->{gender}}{$label}++;
+        $visitor{$data->{age_group}}{$label}++;
     }
 
     return \%visitor;
