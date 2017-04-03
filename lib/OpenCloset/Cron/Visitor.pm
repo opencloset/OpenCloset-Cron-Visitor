@@ -4,6 +4,8 @@ require Exporter;
 @ISA       = qw/Exporter/;
 @EXPORT_OK = qw/visitor_count event_wings_count/;
 
+use OpenCloset::Constants::Status qw/$NOT_VISITED $RESERVATED/;
+
 use strict;
 use warnings;
 
@@ -95,6 +97,64 @@ sub visitor_count {
 
 sub event_wings_count {
     my ( $schema, $date ) = @_;
+    return unless $date;
+
+    my $rs = $schema->resultset('Order')->search(
+        {
+            'me.status_id' => { 'not in' => [ $NOT_VISITED, $RESERVATED ] },
+            'coupon.status' => { -in => [ 'used', 'reserved', 'provided' ] },
+        },
+        { join => [qw/booking coupon/] }
+    )->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
+
+    my %visitor = (
+        male => {
+            visited   => 0,
+            unvisited => 0,
+        },
+        female => {
+            visited   => 0,
+            unvisited => 0,
+        },
+        10 => {
+            visited   => 0,
+            unvisited => 0,
+        },
+        20 => {
+            visited   => 0,
+            unvisited => 0,
+        },
+        30 => {
+            visited   => 0,
+            unvisited => 0,
+        },
+    );
+
+    my $year = DateTime->now->year;
+    while ( my $order = $rs->next ) {
+        my $user      = $order->user;
+        my $user_info = $user->user_info;
+        next unless $user_info;
+
+        my $gender = $user_info->gender;
+        next unless $gender;
+
+        my $birth = $user_info->birth;
+        my $age = int( ( $year - $birth ) / 10 ) * 10;
+
+        my $coupon = $order->coupon;
+        my $coupon_status = $coupon->status || '';
+        if ( $coupon_status eq 'used' ) {
+            ++$visitor{$gender}{visited};
+            ++$visitor{$age}{visited};
+        }
+        else {
+            ++$visitor{$gender}{unvisited};
+            ++$visitor{$age}{unvisited};
+        }
+    }
+
+    return \%visitor;
 }
 
 1;
