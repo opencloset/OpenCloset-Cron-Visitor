@@ -2,7 +2,7 @@ package OpenCloset::Cron::Visitor;
 
 require Exporter;
 @ISA       = qw/Exporter/;
-@EXPORT_OK = qw/visitor_count event_wings_count/;
+@EXPORT_OK = qw/visitor_count visitor_count_online event_wings_count/;
 
 use OpenCloset::Constants::Status qw/$NOT_VISITED $RESERVATED/;
 
@@ -45,7 +45,7 @@ sub visitor_count {
     my ( $schema, $date ) = @_;
     return unless $date;
 
-    my $rs = $schema->resultset('Order')->search( undef, { join => 'booking' } )
+    my $rs = $schema->resultset('Order')->search( { online => 0 }, { join => 'booking' } )
         ->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
 
     my %visitor = (
@@ -73,6 +73,46 @@ sub visitor_count {
         if ( $order->bestfit ) {
             ++$visitor{$gender}{bestfit};
         }
+    }
+
+    return \%visitor;
+}
+
+=head2 visitor_count_online( $schema, $date )
+
+온라인 일별 대여자 수
+
+=cut
+
+sub visitor_count_online {
+    my ( $schema, $date ) = @_;
+    return unless $date;
+
+    my $from = $date->clone->truncate( to => 'day' );
+    my $to = $from->clone;
+    $to->set( hour => 23, minute => 59, second => 59 );
+    my $rs = $schema->resultset('Order')->search(
+        {
+            online      => 1,
+            rental_date => { -between => [ $from->datetime(), $to->datetime() ] }
+        },
+        undef
+    );
+
+    my %visitor = (
+        male   => { rented => 0 },
+        female => { rented => 0 },
+    );
+
+    while ( my $order = $rs->next ) {
+        my $user      = $order->user;
+        my $user_info = $user->user_info;
+        next unless $user_info;
+
+        my $gender = $user_info->gender;
+        next unless $gender;
+
+        ++$visitor{$gender}{rented};
     }
 
     return \%visitor;
