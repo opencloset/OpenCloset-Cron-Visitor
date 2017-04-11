@@ -8,7 +8,7 @@ use Getopt::Long::Descriptive;
 use DateTime;
 
 use OpenCloset::Config;
-use OpenCloset::Cron::Visitor qw/visitor_count event_wings_count/;
+use OpenCloset::Cron::Visitor qw/visitor_count visitor_count_online event_wings_count/;
 use OpenCloset::Cron::Worker;
 use OpenCloset::Cron;
 use OpenCloset::Schema;
@@ -31,7 +31,7 @@ my $DB = OpenCloset::Schema->connect(
 my $worker1 = do {
     my $w;
     $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_visitor_daily',    # 일일 방문자 수
+        name      => 'insert_visitor_daily', # 일일 방문자 수
         cron      => '05 00 * * *',
         time_zone => $TIMEZONE,
         cb        => sub {
@@ -74,8 +74,37 @@ my $worker1 = do {
 my $worker2 = do {
     my $w;
     $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_wings_daily',    # 일일 취업날개 방문자 수
-        cron      => '10 00 * * *',
+        name      => 'insert_visitor_online_daily', # 일일 온라인 대여자 수
+        cron      => '06 00 * * *',
+        time_zone => $TIMEZONE,
+        cb        => sub {
+            my $name = $w->name;
+            my $cron = $w->cron;
+            AE::log( info => "$name\[$cron] launched" );
+
+            my $today = DateTime->today( time_zone => $TIMEZONE );
+            my $date = $today->clone->subtract( days => 1 );
+            my $count = visitor_count_online( $DB, $date );
+
+            $DB->resultset('Visitor')->create(
+                {
+                    date   => "$date",
+                    online => 1,
+
+                    rented        => $count->{male}{rented} + $count->{female}{rented},
+                    rented_male   => $count->{male}{rented},
+                    rented_female => $count->{female}{rented},
+                }
+            );
+        }
+    );
+};
+
+my $worker3 = do {
+    my $w;
+    $w = OpenCloset::Cron::Worker->new(
+        name      => 'insert_event_wings_daily', # 일일 취업날개 방문자 수
+        cron      => '07 00 * * *',
         time_zone => $TIMEZONE,
         cb        => sub {
             my $name = $w->name;
@@ -113,7 +142,7 @@ my $cron = OpenCloset::Cron->new(
     aelog   => $APP_CONF->{aelog},
     port    => $APP_CONF->{port},
     delay   => $APP_CONF->{delay},
-    workers => [$worker1, $worker2],
+    workers => [ $worker1, $worker2, $worker3 ],
 );
 
 $cron->start;
