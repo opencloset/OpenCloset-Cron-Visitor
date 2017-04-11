@@ -90,10 +90,7 @@ sub visitor_count_online {
 
     my $from = $date->clone->truncate( to => 'day' );
     my $to = $from->clone;
-    $to->hour(23);
-    $to->minute(59);
-    $to->second(59);
-
+    $to->set( hour => 23, minute => 59, second => 59 );
     my $rs = $schema->resultset('Order')->search(
         {
             online      => 1,
