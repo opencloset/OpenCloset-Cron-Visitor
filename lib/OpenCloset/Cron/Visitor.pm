@@ -45,7 +45,7 @@ sub visitor_count {
     my ( $schema, $date ) = @_;
     return unless $date;
 
-    my $rs = $schema->resultset('Order')->search( undef, { join => 'booking' } )
+    my $rs = $schema->resultset('Order')->search( { online => 0 }, { join => 'booking' } )
         ->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
 
     my %visitor = (
