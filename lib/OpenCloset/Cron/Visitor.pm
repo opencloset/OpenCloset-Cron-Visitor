@@ -139,7 +139,7 @@ sub event_wings_count {
     my $year = $date->year;
     my $rs   = $schema->resultset('Order')->search(
         {
-            'me.status_id'  => \"NOT IN ($NOT_VISITED, $RESERVATED)",
+            'me.status_id'  => { 'not in' => [ $NOT_VISITED, $RESERVATED ] },
             'coupon.status' => 'used',
         },
         {
