@@ -151,6 +151,7 @@ sub event_wings {
         {
             'me.status_id'  => { 'not in' => [ $NOT_VISITED, $RESERVATED ] },
             'coupon.status' => 'used',
+            'coupon.desc' => { -like => 'seoul-2017%' },
         },
         {
             select => [
@@ -181,6 +182,7 @@ sub event_wings {
         {
             'me.status_id'  => { -in => [ $NOT_VISITED, $RESERVATED ] },
             'coupon.status' => 'reserved',
+            'coupon.desc' => { -like => 'seoul-2017%' },
         },
         {
             select => [
