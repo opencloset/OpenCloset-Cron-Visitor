@@ -6,4 +6,4 @@ requires 'OpenCloset::Common';
 requires 'OpenCloset::Config';
 requires 'OpenCloset::Cron';
 requires 'OpenCloset::Cron::Worker';
-requires 'OpenCloset::Schema';
+requires 'OpenCloset::Schema', '0.052';
