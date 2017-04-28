@@ -1,3 +1,5 @@
+  - linkstart 가 아닌 취업날개 통계를 수집하는 오타 수정
+
 v0.1.1    Fri, 28 Apr 2017 19:09:20 +0900
   - linkstart 통계 수집 worker 를 등록
 
