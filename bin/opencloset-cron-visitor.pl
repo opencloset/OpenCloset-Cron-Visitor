@@ -183,7 +183,7 @@ my $cron = OpenCloset::Cron->new(
     aelog   => $APP_CONF->{aelog},
     port    => $APP_CONF->{port},
     delay   => $APP_CONF->{delay},
-    workers => [ $worker1, $worker2, $worker3 ],
+    workers => [ $worker1, $worker2, $worker3, $worker4 ],
 );
 
 $cron->start;
