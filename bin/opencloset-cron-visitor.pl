@@ -151,7 +151,7 @@ my $worker4 = do {
 
             my $today = DateTime->today( time_zone => $TIMEZONE );
             my $date = $today->clone->subtract( days => 1 );
-            my $count = event_wings( $DB, $date );
+            my $count = event_linkstart( $DB, $date );
             $DB->resultset('Visitor')->create(
                 {
                     date                     => "$date",
