@@ -8,7 +8,7 @@ use Getopt::Long::Descriptive;
 use DateTime;
 
 use OpenCloset::Config;
-use OpenCloset::Cron::Visitor qw/visitor_count visitor_count_online event_wings_count/;
+use OpenCloset::Cron::Visitor qw/visitor_count visitor_count_online event_wings/;
 use OpenCloset::Cron::Worker;
 use OpenCloset::Cron;
 use OpenCloset::Schema;
@@ -113,7 +113,7 @@ my $worker3 = do {
 
             my $today = DateTime->today( time_zone => $TIMEZONE );
             my $date = $today->clone->subtract( days => 1 );
-            my $count = event_wings_count( $DB, $date );
+            my $count = event_wings( $DB, $date );
             $DB->resultset('Visitor')->create(
                 {
                     date           => "$date",

@@ -2,7 +2,7 @@ package OpenCloset::Cron::Visitor;
 
 require Exporter;
 @ISA       = qw/Exporter/;
-@EXPORT_OK = qw/visitor_count visitor_count_online event_wings_count event_linkstart/;
+@EXPORT_OK = qw/visitor_count visitor_count_online event_wings event_linkstart/;
 
 use OpenCloset::Constants::Status qw/
     $NOT_VISITED
@@ -128,13 +128,13 @@ sub visitor_count_online {
     return \%visitor;
 }
 
-=head2 event_wings_count( $schema, $date )
+=head2 event_wings( $schema, $date )
 
 취업날개 일별 방문자 수
 
 =cut
 
-sub event_wings_count {
+sub event_wings {
     my ( $schema, $date ) = @_;
     return unless $date;
 
