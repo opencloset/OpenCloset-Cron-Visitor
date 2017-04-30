@@ -8,7 +8,7 @@ use Getopt::Long::Descriptive;
 use DateTime;
 
 use OpenCloset::Config;
-use OpenCloset::Cron::Visitor qw/visitor_count visitor_count_online event_wings/;
+use OpenCloset::Cron::Visitor qw/visitor_count visitor_count_online event_wings event_linkstart/;
 use OpenCloset::Cron::Worker;
 use OpenCloset::Cron;
 use OpenCloset::Schema;
