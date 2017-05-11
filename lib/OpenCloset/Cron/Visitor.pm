@@ -2,7 +2,7 @@ package OpenCloset::Cron::Visitor;
 
 require Exporter;
 @ISA       = qw/Exporter/;
-@EXPORT_OK = qw/visitor_count visitor_count_online event_wings event_linkstart/;
+@EXPORT_OK = qw/visitor_count visitor_count_online event_wings event_linkstart event_gwanak event_10bob event_happybean/;
 
 use OpenCloset::Constants::Status qw/
     $NOT_VISITED
@@ -16,6 +16,7 @@ use OpenCloset::Constants::Status qw/
     $WAITING_DEPOSIT
     $PAYBACK/;
 
+use utf8;
 use strict;
 use warnings;
 
@@ -145,79 +146,7 @@ sub visitor_count_online {
 sub event_wings {
     my ( $schema, $date ) = @_;
     return unless $date;
-
-    my %visitor = (
-        male   => { visited => 0, unvisited => 0, },
-        female => { visited => 0, unvisited => 0, },
-        10     => { visited => 0, unvisited => 0, },
-        20     => { visited => 0, unvisited => 0, },
-        30     => { visited => 0, unvisited => 0, },
-    );
-
-    my $year = $date->year;
-    my $rs   = $schema->resultset('Order')->search(
-        {
-            'me.status_id'  => { 'not in' => [ $NOT_VISITED, $RESERVATED ] },
-            'coupon.status' => 'used',
-            'coupon.desc' => { -like => 'seoul-2017%' },
-        },
-        {
-            select => [
-                'user_info.gender',
-                'user_info.birth',
-            ],
-            as => [
-                'gender',
-                'birth'
-            ],
-            join => [ 'booking', 'coupon', { user => 'user_info' } ]
-        }
-    )->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
-
-    while ( my $row = $rs->next ) {
-        my $gender = $row->get_column('gender');
-        my $birth  = $row->get_column('birth');
-        next unless $gender;
-        next unless $birth;
-
-        $visitor{$gender}{visited}++;
-
-        my $age = int( ( $year - $birth ) / 10 ) * 10;
-        $visitor{$age}{visited}++;
-    }
-
-    $rs = $schema->resultset('Order')->search(
-        {
-            'me.status_id'  => { -in => [ $NOT_VISITED, $RESERVATED ] },
-            'coupon.status' => 'reserved',
-            'coupon.desc' => { -like => 'seoul-2017%' },
-        },
-        {
-            select => [
-                'user_info.gender',
-                'user_info.birth',
-            ],
-            as => [
-                'gender',
-                'birth'
-            ],
-            join => [ 'booking', 'coupon', { user => 'user_info' } ]
-        }
-    )->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
-
-    while ( my $row = $rs->next ) {
-        my $gender = $row->get_column('gender');
-        my $birth  = $row->get_column('birth');
-        next unless $gender;
-        next unless $birth;
-
-        $visitor{$gender}{unvisited}++;
-
-        my $age = int( ( $year - $birth ) / 10 ) * 10;
-        $visitor{$age}{unvisited}++;
-    }
-
-    return \%visitor;
+    return _event_daily( $schema, $date, 'seoul-2017' );
 }
 
 =head2 event_linkstart( $schema, $date )
@@ -384,6 +313,124 @@ sub event_linkstart {
             my $age = int( ( $year - $birth ) / 10 ) * 10;
             $visitor{$age}{visited}++;
         }
+    }
+
+    return \%visitor;
+}
+
+=head2 event_gwanak( $schema, $date )
+
+관악고용센터 방문자 수
+
+=cut
+
+sub event_gwanak {
+    my ( $schema, $date ) = @_;
+    return unless $date;
+    return _event_daily( $schema, $date, 'gwanak' );
+}
+
+=head2 event_10bob( $schema, $date )
+
+십시일밥 방문자 수
+
+=cut
+
+sub event_10bob {
+    my ( $schema, $date ) = @_;
+    return unless $date;
+    return _event_daily( $schema, $date, '10bob' );
+}
+
+=head2 event_happybean( $schema, $date )
+
+해피빈캠페인 방문자 수
+
+=cut
+
+sub event_happybean {
+    my ( $schema, $date ) = @_;
+    return unless $date;
+    return _event_daily( $schema, $date, '해피빈캠페인' );
+}
+
+=head2 _event_daily($schema, $date, $event_name)
+
+=cut
+
+sub _event_daily {
+    my ( $schema, $date, $event_name ) = @_;
+    return unless $date;
+
+    my %visitor = (
+        male   => { visited => 0, unvisited => 0 },
+        female => { visited => 0, unvisited => 0 },
+        10     => { visited => 0, unvisited => 0 },
+        20     => { visited => 0, unvisited => 0 },
+        30     => { visited => 0, unvisited => 0 },
+    );
+
+    my $year = $date->year;
+    my $rs   = $schema->resultset('Order')->search(
+        {
+            'me.status_id'  => { 'not in' => [ $NOT_VISITED, $RESERVATED ] },
+            'coupon.status' => 'used',
+            'coupon.desc' => { -like => $event_name . '%' },
+        },
+        {
+            select => [
+                'user_info.gender',
+                'user_info.birth',
+            ],
+            as => [
+                'gender',
+                'birth'
+            ],
+            join => [ 'booking', 'coupon', { user => 'user_info' } ]
+        }
+    )->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
+
+    while ( my $row = $rs->next ) {
+        my $gender = $row->get_column('gender');
+        my $birth  = $row->get_column('birth');
+        next unless $gender;
+        next unless $birth;
+
+        $visitor{$gender}{visited}++;
+
+        my $age = int( ( $year - $birth ) / 10 ) * 10;
+        $visitor{$age}{visited}++;
+    }
+
+    $rs = $schema->resultset('Order')->search(
+        {
+            'me.status_id'  => { -in => [ $NOT_VISITED, $RESERVATED ] },
+            'coupon.status' => 'reserved',
+            'coupon.desc' => { -like => $event_name . '%' },
+        },
+        {
+            select => [
+                'user_info.gender',
+                'user_info.birth',
+            ],
+            as => [
+                'gender',
+                'birth'
+            ],
+            join => [ 'booking', 'coupon', { user => 'user_info' } ]
+        }
+    )->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
+
+    while ( my $row = $rs->next ) {
+        my $gender = $row->get_column('gender');
+        my $birth  = $row->get_column('birth');
+        next unless $gender;
+        next unless $birth;
+
+        $visitor{$gender}{unvisited}++;
+
+        my $age = int( ( $year - $birth ) / 10 ) * 10;
+        $visitor{$age}{unvisited}++;
     }
 
     return \%visitor;
