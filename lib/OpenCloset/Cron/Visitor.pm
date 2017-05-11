@@ -50,6 +50,18 @@ OpenCloset::Cron::Visitor - 방문자수와 관려된 cronjob
 
 일일 linkstart 이벤트 방문/미방문수와 주문서 금액을 계산 (AM 00:08)
 
+=item *
+
+일일 관악고용센터 이벤트 방문/미방문수를 계산 (AM 00:09)
+
+=item *
+
+일일 십시일밥 이벤트 방문/미방문수를 계산 (AM 00:10)
+
+=item *
+
+일일 해피빈캠페인 이벤트 방문/미방문수를 계산 (AM 00:11)
+
 =back
 
 =head1 METHODS
