@@ -2,7 +2,7 @@ package OpenCloset::Cron::Visitor;
 
 require Exporter;
 @ISA       = qw/Exporter/;
-@EXPORT_OK = qw/visitor_count visitor_count_online event_wings event_linkstart event_gwanak event_10bob event_happybean/;
+@EXPORT_OK = qw/visitor_count visitor_count_online event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob/;
 
 use OpenCloset::Constants::Status qw/
     $NOT_VISITED
@@ -61,6 +61,10 @@ OpenCloset::Cron::Visitor - 방문자수와 관려된 cronjob
 =item *
 
 일일 해피빈캠페인 이벤트 방문/미방문수를 계산 (AM 00:11)
+
+=item *
+
+일일 인천광역시 일자리정책과 이벤트 방문/미방문수를 계산 (AM 00:12)
 
 =back
 
@@ -364,6 +368,18 @@ sub event_happybean {
     my ( $schema, $date ) = @_;
     return unless $date;
     return _event_daily( $schema, $date, '해피빈캠페인' );
+}
+
+=head2 event_incheonjob( $schema, $date )
+
+해피빈캠페인 방문자 수
+
+=cut
+
+sub event_incheonjob {
+    my ( $schema, $date ) = @_;
+    return unless $date;
+    return _event_daily( $schema, $date, 'inchoenjob' );
 }
 
 =head2 _event_daily($schema, $date, $event_name)

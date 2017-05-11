@@ -8,7 +8,8 @@ use Getopt::Long::Descriptive;
 use DateTime;
 
 use OpenCloset::Config;
-use OpenCloset::Cron::Visitor qw/visitor_count visitor_count_online event_wings event_linkstart event_gwanak event_10bob event_happybean/;
+use OpenCloset::Cron::Visitor
+    qw/visitor_count visitor_count_online event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob/;
 use OpenCloset::Cron::Worker;
 use OpenCloset::Cron;
 use OpenCloset::Schema;
@@ -241,11 +242,26 @@ my $worker7 = do {
     );
 };
 
+my $worker8 = do {
+    my $w;
+    $w = OpenCloset::Cron::Worker->new(
+        name      => 'insert_event_incheonjob_daily', # 일일 인천광역시 일자리정책과 방문자 수
+        cron      => '12 00 * * *',
+        time_zone => $TIMEZONE,
+        cb        => sub {
+            my $name = $w->name;
+            my $cron = $w->cron;
+            AE::log( info => "$name\[$cron] launched" );
+            _collect_stat_daily('incheonjob');
+        }
+    );
+};
+
 my $cron = OpenCloset::Cron->new(
     aelog   => $APP_CONF->{aelog},
     port    => $APP_CONF->{port},
     delay   => $APP_CONF->{delay},
-    workers => [ $worker1, $worker2, $worker3, $worker4, $worker5, $worker6, $worker7 ],
+    workers => [ $worker1, $worker2, $worker3, $worker4, $worker5, $worker6, $worker7, $worker8 ],
 );
 
 $cron->start;
