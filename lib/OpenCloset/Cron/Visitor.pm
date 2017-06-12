@@ -2,13 +2,14 @@ package OpenCloset::Cron::Visitor;
 
 require Exporter;
 @ISA       = qw/Exporter/;
-@EXPORT_OK = qw/visitor_count visitor_count_online event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob/;
+@EXPORT_OK = qw/visitor_count event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob/;
 
 use OpenCloset::Constants::Status qw/
     $NOT_VISITED
     $RESERVATED
     $RENTAL
     $RENTABLE
+    $RETURNED
     $CHOOSE_CLOTHES
     $CHOOSE_ADDRESS
     $PAYMENT
@@ -37,10 +38,6 @@ OpenCloset::Cron::Visitor - 방문자수와 관려된 cronjob
 =item *
 
 일일 방문자수를 계산 (AM 00:05)
-
-=item *
-
-일일 온라인 방문자수를 계산 (AM 00:06)
 
 =item *
 
@@ -110,7 +107,39 @@ sub visitor_count {
         }
     }
 
-    return \%visitor;
+    $rs = $schema->resultset('Order')->search(
+        {
+            online      => 1,
+            rental_date => {
+                -between => [
+                    $date->clone->truncate( to => 'day' )->datetime,
+                    $date->clone->add( days => 1 )->subtract( seconds => 1 )->datetime
+                ]
+            }
+        },
+        undef
+    );
+
+    my %online = (
+        male   => { rented => 0 },
+        female => { rented => 0 },
+    );
+
+    while ( my $order = $rs->next ) {
+        my $user      = $order->user;
+        my $user_info = $user->user_info;
+        next unless $user_info;
+
+        my $gender = $user_info->gender;
+        next unless $gender;
+
+        ++$online{$gender}{rented};
+    }
+
+    return {
+        offline => \%visitor,
+        online  => \%online,
+    };
 }
 
 =head2 visitor_count_online( $schema, $date )
@@ -271,6 +300,14 @@ sub event_linkstart {
 
     ## online visited
     ## rented 가 맞지만 기존 이벤트에서 visited 를 사용했으므로 visited 로 사용
+    my %online = (
+        male    => { visited => 0, unvisited => 0 },
+        female  => { visited => 0, unvisited => 0 },
+        10      => { visited => 0, unvisited => 0 },
+        20      => { visited => 0, unvisited => 0 },
+        30      => { visited => 0, unvisited => 0 },
+        rate_30 => { visited => 0, sum       => 0, discount => 0 },
+    );
     my $from = $date->clone->truncate( to => 'day' );
     my $to = $from->clone;
     $to->set( hour => 23, minute => 59, second => 59 );
@@ -314,24 +351,27 @@ sub event_linkstart {
                 $final_price += $detail->final_price;
             }
 
-            $visitor{rate_30}{visited}++;
-            $visitor{rate_30}{sum} += $final_price;
+            $online{rate_30}{visited}++;
+            $online{rate_30}{sum} += $final_price;
             my $detail = $order->order_details( { name => '30% 할인쿠폰' }, { rows => 1 } )->single;
             next unless $detail;
 
-            $visitor{rate_30}{discount} += $detail->final_price * -1;
+            $online{rate_30}{discount} += $detail->final_price * -1;
 
             next unless $gender;
             next unless $birth;
 
-            $visitor{$gender}{visited}++;
+            $online{$gender}{visited}++;
 
             my $age = int( ( $year - $birth ) / 10 ) * 10;
-            $visitor{$age}{visited}++;
+            $online{$age}{visited}++;
         }
     }
 
-    return \%visitor;
+    return {
+        offline => \%visitor,
+        online  => \%online,
+    };
 }
 
 =head2 event_gwanak( $schema, $date )
@@ -401,6 +441,7 @@ sub _event_daily {
     my $year = $date->year;
     my $rs   = $schema->resultset('Order')->search(
         {
+            'me.online'     => 0,
             'me.status_id'  => { 'not in' => [ $NOT_VISITED, $RESERVATED ] },
             'coupon.status' => 'used',
             'coupon.desc' => { -like => $event_name . '%' },
@@ -432,6 +473,7 @@ sub _event_daily {
 
     $rs = $schema->resultset('Order')->search(
         {
+            'me.online'     => 0,
             'me.status_id'  => { -in => [ $NOT_VISITED, $RESERVATED ] },
             'coupon.status' => 'reserved',
             'coupon.desc' => { -like => $event_name . '%' },
@@ -461,7 +503,90 @@ sub _event_daily {
         $visitor{$age}{unvisited}++;
     }
 
-    return \%visitor;
+    ## online
+    $rs = $schema->resultset('Order')->search(
+        {
+            'me.online'      => 1,
+            'me.rental_date' => {
+                -between => [
+                    $date->datetime,
+                    $date->clone->add( days => 1 )->subtract( seconds => 1 )->datetime
+                ]
+            },
+            'me.status_id' => { -in => [ $RENTAL, $RETURNED ] }, # 대여중 혹은 반납
+            'coupon.status' => 'used',
+            'coupon.desc'   => { -like => $event_name . '%' },
+        },
+        {
+            select => [
+                'user_info.gender',
+                'user_info.birth',
+            ],
+            as => [
+                'gender',
+                'birth'
+            ],
+            join => [ 'coupon', { user => 'user_info' } ]
+        }
+    );
+
+    my %online = (
+        male   => { visited => 0, unvisited => 0 },
+        female => { visited => 0, unvisited => 0 },
+        10     => { visited => 0, unvisited => 0 },
+        20     => { visited => 0, unvisited => 0 },
+        30     => { visited => 0, unvisited => 0 },
+    );
+
+    while ( my $row = $rs->next ) {
+        my $gender = $row->get_column('gender');
+        my $birth  = $row->get_column('birth');
+        next unless $gender;
+        next unless $birth;
+
+        $online{$gender}{visited}++;
+
+        my $age = int( ( $year - $birth ) / 10 ) * 10;
+        $online{$age}{visited}++;
+    }
+
+    $rs = $schema->resultset('Order')->search(
+        {
+            'me.online'      => 1,
+            'me.rental_date' => undef,
+            'me.wearon_date' => $date->datetime(),
+            'coupon.status'  => 'used',
+            'coupon.desc'    => { -like => $event_name . '%' },
+        },
+        {
+            select => [
+                'user_info.gender',
+                'user_info.birth',
+            ],
+            as => [
+                'gender',
+                'birth'
+            ],
+            join => [ 'coupon', { user => 'user_info' } ]
+        }
+    );
+
+    while ( my $row = $rs->next ) {
+        my $gender = $row->get_column('gender');
+        my $birth  = $row->get_column('birth');
+        next unless $gender;
+        next unless $birth;
+
+        $online{$gender}{unvisited}++;
+
+        my $age = int( ( $year - $birth ) / 10 ) * 10;
+        $online{$age}{unvisited}++;
+    }
+
+    return {
+        offline => \%visitor,
+        online  => \%online,
+    };
 }
 
 1;

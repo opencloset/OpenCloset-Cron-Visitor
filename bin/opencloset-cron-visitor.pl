@@ -8,8 +8,7 @@ use Getopt::Long::Descriptive;
 use DateTime;
 
 use OpenCloset::Config;
-use OpenCloset::Cron::Visitor
-    qw/visitor_count visitor_count_online event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob/;
+use OpenCloset::Cron::Visitor qw/visitor_count event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob/;
 use OpenCloset::Cron::Worker;
 use OpenCloset::Cron;
 use OpenCloset::Schema;
@@ -33,7 +32,7 @@ our %EVENT_MAP = (
     'seoul-2017' => 'wings',
 );
 
-sub _collect_stat_daily {
+sub _collect_event_stat_daily {
     my $name = shift;
     return unless $name;
 
@@ -47,26 +46,31 @@ sub _collect_stat_daily {
         $count = $fn->( $DB, $date );
     }
 
-    $DB->resultset('Visitor')->create(
-        {
-            date           => "$date",
-            visited        => $count->{male}{visited} + $count->{female}{visited},
-            visited_male   => $count->{male}{visited},
-            visited_female => $count->{female}{visited},
-            visited_age_10 => $count->{10}{visited},
-            visited_age_20 => $count->{20}{visited},
-            visited_age_30 => $count->{30}{visited},
+    for my $key (qw/offline online/) {
+        my $stat = $count->{$key};
+        my $online = $key eq 'online' ? 1 : 0;
+        $DB->resultset('Visitor')->create(
+            {
+                date           => "$date",
+                online         => $online,
+                visited        => $stat->{male}{visited} + $stat->{female}{visited},
+                visited_male   => $stat->{male}{visited},
+                visited_female => $stat->{female}{visited},
+                visited_age_10 => $stat->{10}{visited},
+                visited_age_20 => $stat->{20}{visited},
+                visited_age_30 => $stat->{30}{visited},
 
-            unvisited        => $count->{male}{unvisited} + $count->{female}{unvisited},
-            unvisited_male   => $count->{male}{unvisited},
-            unvisited_female => $count->{female}{unvisited},
-            unvisited_age_10 => $count->{10}{unvisited},
-            unvisited_age_20 => $count->{20}{unvisited},
-            unvisited_age_30 => $count->{30}{unvisited},
+                unvisited        => $stat->{male}{unvisited} + $stat->{female}{unvisited},
+                unvisited_male   => $stat->{male}{unvisited},
+                unvisited_female => $stat->{female}{unvisited},
+                unvisited_age_10 => $stat->{10}{unvisited},
+                unvisited_age_20 => $stat->{20}{unvisited},
+                unvisited_age_30 => $stat->{30}{unvisited},
 
-            event => $name,
-        }
-    );
+                event => $name,
+            }
+        );
+    }
 }
 
 my $worker1 = do {
@@ -82,30 +86,45 @@ my $worker1 = do {
 
             my $today = DateTime->today( time_zone => $TIMEZONE );
             my $date = $today->clone->subtract( days => 1 );
-            my $count = visitor_count( $DB, $date );
+            my $count   = visitor_count( $DB, $date );
+            my $offline = $count->{offline};
+            my $online  = $count->{online};
 
+            ## offline stat
             $DB->resultset('Visitor')->create(
                 {
                     date            => "$date",
-                    reserved        => $count->{male}{reserved} + $count->{female}{reserved},
-                    reserved_male   => $count->{male}{reserved},
-                    reserved_female => $count->{female}{reserved},
+                    reserved        => $offline->{male}{reserved} + $offline->{female}{reserved},
+                    reserved_male   => $offline->{male}{reserved},
+                    reserved_female => $offline->{female}{reserved},
 
-                    visited        => $count->{male}{visited} + $count->{female}{visited},
-                    visited_male   => $count->{male}{visited},
-                    visited_female => $count->{female}{visited},
+                    visited        => $offline->{male}{visited} + $offline->{female}{visited},
+                    visited_male   => $offline->{male}{visited},
+                    visited_female => $offline->{female}{visited},
 
-                    unvisited        => $count->{male}{unvisited} + $count->{female}{unvisited},
-                    unvisited_male   => $count->{male}{unvisited},
-                    unvisited_female => $count->{female}{unvisited},
+                    unvisited        => $offline->{male}{unvisited} + $offline->{female}{unvisited},
+                    unvisited_male   => $offline->{male}{unvisited},
+                    unvisited_female => $offline->{female}{unvisited},
 
-                    rented        => $count->{male}{rented} + $count->{female}{rented},
-                    rented_male   => $count->{male}{rented},
-                    rented_female => $count->{female}{rented},
+                    rented        => $offline->{male}{rented} + $offline->{female}{rented},
+                    rented_male   => $offline->{male}{rented},
+                    rented_female => $offline->{female}{rented},
 
-                    bestfit        => $count->{male}{bestfit} + $count->{female}{bestfit},
-                    bestfit_male   => $count->{male}{bestfit},
-                    bestfit_female => $count->{female}{bestfit},
+                    bestfit        => $offline->{male}{bestfit} + $offline->{female}{bestfit},
+                    bestfit_male   => $offline->{male}{bestfit},
+                    bestfit_female => $offline->{female}{bestfit},
+                }
+            );
+
+            ## online stat
+            $DB->resultset('Visitor')->create(
+                {
+                    date   => "$date",
+                    online => 1,
+
+                    rented        => $online->{male}{rented} + $online->{female}{rented},
+                    rented_male   => $online->{male}{rented},
+                    rented_female => $online->{female}{rented},
                 }
             );
         }
@@ -115,35 +134,6 @@ my $worker1 = do {
 my $worker2 = do {
     my $w;
     $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_visitor_online_daily', # 일일 온라인 대여자 수
-        cron      => '06 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-
-            my $today = DateTime->today( time_zone => $TIMEZONE );
-            my $date = $today->clone->subtract( days => 1 );
-            my $count = visitor_count_online( $DB, $date );
-
-            $DB->resultset('Visitor')->create(
-                {
-                    date   => "$date",
-                    online => 1,
-
-                    rented        => $count->{male}{rented} + $count->{female}{rented},
-                    rented_male   => $count->{male}{rented},
-                    rented_female => $count->{female}{rented},
-                }
-            );
-        }
-    );
-};
-
-my $worker3 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
         name      => 'insert_event_wings_daily', # 일일 취업날개 방문자 수
         cron      => '07 00 * * *',
         time_zone => $TIMEZONE,
@@ -151,12 +141,12 @@ my $worker3 = do {
             my $name = $w->name;
             my $cron = $w->cron;
             AE::log( info => "$name\[$cron] launched" );
-            _collect_stat_daily('seoul-2017');
+            _collect_event_stat_daily('seoul-2017');
         }
     );
 };
 
-my $worker4 = do {
+my $worker3 = do {
     my $w;
     $w = OpenCloset::Cron::Worker->new(
         name      => 'insert_event_linkstart_daily', # 일일 linkstart 방문자 수
@@ -170,34 +160,41 @@ my $worker4 = do {
             my $today = DateTime->today( time_zone => $TIMEZONE );
             my $date = $today->clone->subtract( days => 1 );
             my $count = event_linkstart( $DB, $date );
-            $DB->resultset('Visitor')->create(
-                {
-                    date                     => "$date",
-                    visited                  => $count->{male}{visited} + $count->{female}{visited},
-                    visited_male             => $count->{male}{visited},
-                    visited_female           => $count->{female}{visited},
-                    visited_age_10           => $count->{10}{visited},
-                    visited_age_20           => $count->{20}{visited},
-                    visited_age_30           => $count->{30}{visited},
-                    visited_rate_30          => $count->{rate_30}{visited},
-                    visited_rate_30_sum      => $count->{rate_30}{sum},
-                    visited_rate_30_discount => $count->{rate_30}{discount},
 
-                    unvisited        => $count->{male}{unvisited} + $count->{female}{unvisited},
-                    unvisited_male   => $count->{male}{unvisited},
-                    unvisited_female => $count->{female}{unvisited},
-                    unvisited_age_10 => $count->{10}{unvisited},
-                    unvisited_age_20 => $count->{20}{unvisited},
-                    unvisited_age_30 => $count->{30}{unvisited},
+            for my $key (qw/offline online/) {
+                my $stat = $count->{$key};
+                my $online = $key eq 'online' ? 1 : 0;
 
-                    event => 'linkstart',
-                }
-            );
+                $DB->resultset('Visitor')->create(
+                    {
+                        date                    => "$date",
+                        online                  => $online,
+                        visited                 => $stat->{male}{visited} + $stat->{female}{visited},
+                        visited_male            => $stat->{male}{visited},
+                        visited_female          => $stat->{female}{visited},
+                        visited_age_10          => $stat->{10}{visited},
+                        visited_age_20          => $stat->{20}{visited},
+                        visited_age_30          => $stat->{30}{visited},
+                        visited_rate_30         => $stat->{rate_30}{visited},
+                        visited_rate_30_sum     => $stat->{rate_30}{sum},
+                        visited_rate_30_disstat => $stat->{rate_30}{disstat},
+
+                        unvisited        => $stat->{male}{unvisited} + $stat->{female}{unvisited},
+                        unvisited_male   => $stat->{male}{unvisited},
+                        unvisited_female => $stat->{female}{unvisited},
+                        unvisited_age_10 => $stat->{10}{unvisited},
+                        unvisited_age_20 => $stat->{20}{unvisited},
+                        unvisited_age_30 => $stat->{30}{unvisited},
+
+                        event => 'linkstart',
+                    }
+                );
+            }
         }
     );
 };
 
-my $worker5 = do {
+my $worker4 = do {
     my $w;
     $w = OpenCloset::Cron::Worker->new(
         name      => 'insert_event_gwanak_daily', # 일일 관악고용센터 방문자 수
@@ -207,12 +204,12 @@ my $worker5 = do {
             my $name = $w->name;
             my $cron = $w->cron;
             AE::log( info => "$name\[$cron] launched" );
-            _collect_stat_daily('gwanak');
+            _collect_event_stat_daily('gwanak');
         }
     );
 };
 
-my $worker6 = do {
+my $worker5 = do {
     my $w;
     $w = OpenCloset::Cron::Worker->new(
         name      => 'insert_event_10bob_daily', # 일일 십시일밥 방문자 수
@@ -222,12 +219,12 @@ my $worker6 = do {
             my $name = $w->name;
             my $cron = $w->cron;
             AE::log( info => "$name\[$cron] launched" );
-            _collect_stat_daily('10bob');
+            _collect_event_stat_daily('10bob');
         }
     );
 };
 
-my $worker7 = do {
+my $worker6 = do {
     my $w;
     $w = OpenCloset::Cron::Worker->new(
         name      => 'insert_event_happybean_daily', # 일일 해피빈캠페인 방문자 수
@@ -237,12 +234,12 @@ my $worker7 = do {
             my $name = $w->name;
             my $cron = $w->cron;
             AE::log( info => "$name\[$cron] launched" );
-            _collect_stat_daily('happybean');
+            _collect_event_stat_daily('happybean');
         }
     );
 };
 
-my $worker8 = do {
+my $worker7 = do {
     my $w;
     $w = OpenCloset::Cron::Worker->new(
         name      => 'insert_event_incheonjob_daily', # 일일 인천광역시 일자리정책과 방문자 수
@@ -252,7 +249,7 @@ my $worker8 = do {
             my $name = $w->name;
             my $cron = $w->cron;
             AE::log( info => "$name\[$cron] launched" );
-            _collect_stat_daily('incheonjob');
+            _collect_event_stat_daily('incheonjob');
         }
     );
 };
@@ -261,7 +258,7 @@ my $cron = OpenCloset::Cron->new(
     aelog   => $APP_CONF->{aelog},
     port    => $APP_CONF->{port},
     delay   => $APP_CONF->{delay},
-    workers => [ $worker1, $worker2, $worker3, $worker4, $worker5, $worker6, $worker7, $worker8 ],
+    workers => [ $worker1, $worker2, $worker3, $worker4, $worker5, $worker6, $worker7 ],
 );
 
 $cron->start;
