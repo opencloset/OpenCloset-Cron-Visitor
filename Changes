@@ -3,6 +3,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+## [v0.2.1] - Tue, 13 Jun 2017 13:07:02 +0900
 ### Fixed
 - linkstart 통계 수집 오타 수정
 
