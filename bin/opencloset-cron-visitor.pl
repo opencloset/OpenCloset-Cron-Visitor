@@ -167,17 +167,17 @@ my $worker3 = do {
 
                 $DB->resultset('Visitor')->create(
                     {
-                        date                    => "$date",
-                        online                  => $online,
-                        visited                 => $stat->{male}{visited} + $stat->{female}{visited},
-                        visited_male            => $stat->{male}{visited},
-                        visited_female          => $stat->{female}{visited},
-                        visited_age_10          => $stat->{10}{visited},
-                        visited_age_20          => $stat->{20}{visited},
-                        visited_age_30          => $stat->{30}{visited},
-                        visited_rate_30         => $stat->{rate_30}{visited},
-                        visited_rate_30_sum     => $stat->{rate_30}{sum},
-                        visited_rate_30_disstat => $stat->{rate_30}{disstat},
+                        date                     => "$date",
+                        online                   => $online,
+                        visited                  => $stat->{male}{visited} + $stat->{female}{visited},
+                        visited_male             => $stat->{male}{visited},
+                        visited_female           => $stat->{female}{visited},
+                        visited_age_10           => $stat->{10}{visited},
+                        visited_age_20           => $stat->{20}{visited},
+                        visited_age_30           => $stat->{30}{visited},
+                        visited_rate_30          => $stat->{rate_30}{visited},
+                        visited_rate_30_sum      => $stat->{rate_30}{sum},
+                        visited_rate_30_discount => $stat->{rate_30}{disstat},
 
                         unvisited        => $stat->{male}{unvisited} + $stat->{female}{unvisited},
                         unvisited_male   => $stat->{male}{unvisited},

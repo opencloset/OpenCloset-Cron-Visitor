@@ -2,6 +2,11 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
+
+## [v0.2.1] - Tue, 13 Jun 2017 13:07:02 +0900
+### Fixed
+- linkstart 통계 수집 오타 수정
+
 ## [v0.2.0] - Mon, 12 Jun 2017 19:05:24 +0900
 ### Changed
 - 온라인 통계도 수집
