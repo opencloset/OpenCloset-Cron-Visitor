@@ -3,6 +3,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+## [v0.2.2] - Wed, 26 Jul 2017 19:10:11 +0900
+
 ### Changed
 - 취업날개 연장하기 버튼 데이터를 일일 통계에 더함 (#6)
 
