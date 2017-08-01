@@ -2,7 +2,7 @@ package OpenCloset::Cron::Visitor;
 
 require Exporter;
 @ISA       = qw/Exporter/;
-@EXPORT_OK = qw/visitor_count event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob/;
+@EXPORT_OK = qw/visitor_count event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob event_anyangyouth/;
 
 use OpenCloset::Constants::Status qw/
     $NOT_VISITED
@@ -412,7 +412,7 @@ sub event_happybean {
 
 =head2 event_incheonjob( $schema, $date )
 
-해피빈캠페인 방문자 수
+인천광역시 일자리정책과 이벤트
 
 =cut
 
@@ -420,6 +420,18 @@ sub event_incheonjob {
     my ( $schema, $date ) = @_;
     return unless $date;
     return _event_daily( $schema, $date, 'inchoenjob' );
+}
+
+=head2 event_anyangyouth( $schema, $date )
+
+안양시 청년옷장 이벤트
+
+=cut
+
+sub event_anyangyouth {
+    my ( $schema, $date ) = @_;
+    return unless $date;
+    return _event_daily( $schema, $date, 'anyangyouth' );
 }
 
 =head2 _event_daily($schema, $date, $event_name)
