@@ -3,6 +3,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Added
+- 안양시 청년옷장 이벤트의 통계를 수집
+
 ## [v0.2.2] - Wed, 26 Jul 2017 19:10:11 +0900
 
 ### Changed
