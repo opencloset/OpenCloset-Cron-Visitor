@@ -11,3 +11,7 @@
 - 일일 인천광역시 일자리정책과 이벤트 방문/미방문수를 계산 (AM 00:12)
 - 일일 안양시 청년옷장 이벤트 방문/미방문수를 계산 (AM 00:13)
 - 일일 한신대학교 이벤트 방문/미방문수를 계산 (AM 00:14)
+
+## Build docker image ##
+
+    $ docker build -t opencloset/cron/visitor .
