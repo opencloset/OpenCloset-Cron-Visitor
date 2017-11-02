@@ -3,6 +3,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+## [v0.3.0] - Thu, 02 Nov 2017 15:37:07 +0900
+
+### Added
+- Add Dockerfile
+
 ## [v0.2.4] - Wed, 18 Oct 2017 16:48:46 +0900
 
 ### Added
