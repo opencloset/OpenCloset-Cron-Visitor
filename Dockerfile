@@ -17,7 +17,7 @@ RUN chown -R opencloset:opencloset .
 USER opencloset
 
 ENV PERL5LIB "./lib:$PERL5LIB"
-ENV OPENCLOSET_DATABASE_DSN "REQUIRED"
+# ENV OPENCLOSET_DATABASE_DSN "REQUIRED"
 ENV OPENCLOSET_CRON_VISITOR_PORT "5000"
 
 CMD ["./bin/opencloset-cron-visitor.pl", "./app.conf"]
