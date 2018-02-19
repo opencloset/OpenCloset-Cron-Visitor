@@ -200,7 +200,7 @@ sub visitor_count_online {
 sub event_wings {
     my ( $schema, $date ) = @_;
     return unless $date;
-    return _event_daily( $schema, $date, 'seoul-2017' );
+    return _event_daily( $schema, $date, 'seoul-2018' );
 }
 
 =head2 event_linkstart( $schema, $date )
