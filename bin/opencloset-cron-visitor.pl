@@ -32,6 +32,7 @@ my $DB = OpenCloset::Schema->connect(
 
 our %EVENT_MAP = (
     'seoul-2017' => 'wings',
+    'seoul-2018' => 'wings',
 );
 
 sub _collect_event_stat_daily {
@@ -143,7 +144,7 @@ my $worker2 = do {
             my $name = $w->name;
             my $cron = $w->cron;
             AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('seoul-2017');
+            _collect_event_stat_daily('seoul-2018');
 
             my $today = DateTime->today( time_zone => $TIMEZONE );
             my $date = $today->clone->subtract( days => 1 );
@@ -153,7 +154,7 @@ my $worker2 = do {
                 my $daily = $DB->resultset('Visitor')->search(
                     {
                         date   => "$date",
-                        event  => 'seoul-2017',
+                        event  => 'seoul-2018',
                         online => $online,
                     },
                     { rows => 1 }
@@ -165,7 +166,7 @@ my $worker2 = do {
                     {
                         date   => "$date",
                         online => $online,
-                        event  => 'extra-seoul-2017'
+                        event  => 'extra-seoul-2018'
                     },
                     { rows => 1 }
                 )->single;
