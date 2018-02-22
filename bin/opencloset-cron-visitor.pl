@@ -10,7 +10,7 @@ use DateTime;
 
 use OpenCloset::Config;
 use OpenCloset::Cron::Visitor
-    qw/visitor_count event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob event_anyangyouth event_hanshin_univ/;
+    qw/visitor_count event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob event_anyangyouth event_hanshin_univ event_gunpo/;
 use OpenCloset::Cron::Worker;
 use OpenCloset::Cron;
 use OpenCloset::Schema;
@@ -328,11 +328,26 @@ my $worker9 = do {
     );
 };
 
+my $worker10 = do {
+    my $w;
+    $w = OpenCloset::Cron::Worker->new(
+        name      => 'insert_event_gunpo_daily', # 일일 한신대학교 방문자 수
+        cron      => '15 00 * * *',
+        time_zone => $TIMEZONE,
+        cb        => sub {
+            my $name = $w->name;
+            my $cron = $w->cron;
+            AE::log( info => "$name\[$cron] launched" );
+            _collect_event_stat_daily('gunpo');
+        }
+    );
+};
+
 my $cron = OpenCloset::Cron->new(
     aelog   => $APP_CONF->{aelog},
     port    => $APP_CONF->{port},
     delay   => $APP_CONF->{delay},
-    workers => [ $worker1, $worker2, $worker3, $worker4, $worker5, $worker6, $worker7, $worker8, $worker9 ],
+    workers => [ $worker1, $worker2, $worker3, $worker4, $worker5, $worker6, $worker7, $worker8, $worker9, $worker10 ],
 );
 
 $cron->start;

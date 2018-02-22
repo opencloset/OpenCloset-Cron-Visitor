@@ -3,6 +3,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Added
+- 군포시 이벤트의 통계를 수집 (#7)
+
 ## [v0.3.1] - Mon, 19 Feb 2018 16:03:19 +0900
 
 ### Changed
