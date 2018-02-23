@@ -3,6 +3,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Changed
+- 안양시 청년옷장 이벤트명이 `anyangyouth` 에서 `anyang201801` 로 변경됨
+
 ## [v0.3.2] - Thu, 22 Feb 2018 15:10:31 +0900
 
 ### Added
