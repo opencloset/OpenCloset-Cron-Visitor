@@ -439,12 +439,14 @@ sub event_incheonjob {
 
 안양시 청년옷장 이벤트
 
+2017년도 쿠폰은 B<anyangyouth> 쿠폰 제한 작업이 추가되면서 2018년도 쿠폰이름이 B<anyang201801> 으로 변경됨
+
 =cut
 
 sub event_anyangyouth {
     my ( $schema, $date ) = @_;
     return unless $date;
-    return _event_daily( $schema, $date, 'anyangyouth' );
+    return _event_daily( $schema, $date, 'anyang201801' );
 }
 
 =head2 event_hanshin_univ( $schema, $date )
