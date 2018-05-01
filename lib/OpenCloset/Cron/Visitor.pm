@@ -1,11 +1,21 @@
 package OpenCloset::Cron::Visitor;
 
 require Exporter;
-@ISA = qw/Exporter/;
-@EXPORT_OK =
-    qw/visitor_count event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob event_anyangyouth event_hanshin_univ event_gunpo/;
+@ISA       = qw( Exporter );
+@EXPORT_OK = qw(
+    visitor_count
+    event_wings
+    event_linkstart
+    event_gwanak
+    event_10bob
+    event_happybean
+    event_incheonjob
+    event_anyangyouth
+    event_hanshin_univ
+    event_gunpo
+);
 
-use OpenCloset::Constants::Status qw/
+use OpenCloset::Constants::Status qw(
     $NOT_VISITED
     $RESERVATED
     $RENTAL
@@ -16,7 +26,8 @@ use OpenCloset::Constants::Status qw/
     $PAYMENT
     $PAYMENT_DONE
     $WAITING_DEPOSIT
-    $PAYBACK/;
+    $PAYBACK
+);
 
 use utf8;
 use strict;
