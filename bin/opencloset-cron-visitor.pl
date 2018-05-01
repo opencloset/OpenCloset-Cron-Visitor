@@ -17,17 +17,15 @@ use OpenCloset::Schema;
 my $config_file = shift;
 die "Usage: $Script <config path>\n" unless $config_file && -f $config_file;
 
-my $CONF     = OpenCloset::Config::load($config_file);
-my $APP_CONF = $CONF->{$Script};
-my $DB_CONF  = $CONF->{database};
-my $TIMEZONE = $CONF->{timezone};
+my $occ      = OpenCloset::Config->new( file => $config_file );
+my $APP_CONF = $occ->conf->{$Script};
+my $TIMEZONE = $occ->timezone;
 
 die "$config_file: $Script is needed\n"  unless $APP_CONF;
-die "$config_file: database is needed\n" unless $DB_CONF;
+die "$config_file: database is needed\n" unless $occ->dbic;
 die "$config_file: timezone is needed\n" unless $TIMEZONE;
 
-my $DB = OpenCloset::Schema->connect(
-    { dsn => $DB_CONF->{dsn}, user => $DB_CONF->{user}, password => $DB_CONF->{pass}, %{ $DB_CONF->{opts} }, } );
+my $DB = OpenCloset::Schema->connect( $occ->dbic );
 
 our %EVENT_MAP = (
     'seoul-2017' => 'wings',
