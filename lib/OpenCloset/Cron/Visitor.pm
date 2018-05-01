@@ -1,11 +1,22 @@
 package OpenCloset::Cron::Visitor;
 
 require Exporter;
-@ISA = qw/Exporter/;
-@EXPORT_OK =
-    qw/visitor_count event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob event_anyangyouth event_hanshin_univ event_gunpo/;
+@ISA       = qw( Exporter );
+@EXPORT_OK = qw(
+    event_10bob
+    event_anyangyouth
+    event_gunpo
+    event_gwanak
+    event_gwangju201801
+    event_hanshin_univ
+    event_happybean
+    event_incheonjob
+    event_linkstart
+    event_wings
+    visitor_count
+);
 
-use OpenCloset::Constants::Status qw/
+use OpenCloset::Constants::Status qw(
     $NOT_VISITED
     $RESERVATED
     $RENTAL
@@ -16,7 +27,8 @@ use OpenCloset::Constants::Status qw/
     $PAYMENT
     $PAYMENT_DONE
     $WAITING_DEPOSIT
-    $PAYBACK/;
+    $PAYBACK
+);
 
 use utf8;
 use strict;
@@ -75,6 +87,10 @@ OpenCloset::Cron::Visitor - 방문자수와 관려된 cronjob
 =item *
 
 일일 군포시 이벤트 방문/미방문수를 계산 (AM 00:15)
+
+=item *
+
+일일 gwangju201801 이벤트 방문/미방문수를 계산 (AM 00:16)
 
 =back
 
@@ -471,6 +487,18 @@ sub event_gunpo {
     my ( $schema, $date ) = @_;
     return unless $date;
     return _event_daily( $schema, $date, 'gunpo' );
+}
+
+=head2 event_gwangju201801( $schema, $date )
+
+gwangju201801 이벤트
+
+=cut
+
+sub event_gwangju201801 {
+    my ( $schema, $date ) = @_;
+    return unless $date;
+    return _event_daily( $schema, $date, 'gwangju201801' );
 }
 
 =head2 _event_daily($schema, $date, $event_name)
