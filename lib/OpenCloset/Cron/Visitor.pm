@@ -3,16 +3,16 @@ package OpenCloset::Cron::Visitor;
 require Exporter;
 @ISA       = qw( Exporter );
 @EXPORT_OK = qw(
-    visitor_count
-    event_wings
-    event_linkstart
-    event_gwanak
     event_10bob
+    event_anyangyouth
+    event_gunpo
+    event_gwanak
+    event_hanshin_univ
     event_happybean
     event_incheonjob
-    event_anyangyouth
-    event_hanshin_univ
-    event_gunpo
+    event_linkstart
+    event_wings
+    visitor_count
 );
 
 use OpenCloset::Constants::Status qw(
