@@ -3,6 +3,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Added
+- gwangju201801 통계 수집 (#9)
+
 ## [v0.3.3] - Fri, 23 Feb 2018 14:35:34 +0900
 
 ### Changed
