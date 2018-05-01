@@ -9,8 +9,7 @@ use Getopt::Long::Descriptive;
 use DateTime;
 
 use OpenCloset::Config;
-use OpenCloset::Cron::Visitor
-    qw/visitor_count event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob event_anyangyouth event_hanshin_univ event_gunpo/;
+use OpenCloset::Cron::Visitor;
 use OpenCloset::Cron::Worker;
 use OpenCloset::Cron;
 use OpenCloset::Schema;
@@ -18,17 +17,15 @@ use OpenCloset::Schema;
 my $config_file = shift;
 die "Usage: $Script <config path>\n" unless $config_file && -f $config_file;
 
-my $CONF     = OpenCloset::Config::load($config_file);
-my $APP_CONF = $CONF->{$Script};
-my $DB_CONF  = $CONF->{database};
-my $TIMEZONE = $CONF->{timezone};
+my $occ      = OpenCloset::Config->new( file => $config_file );
+my $APP_CONF = $occ->conf->{$Script};
+my $TIMEZONE = $occ->timezone;
 
 die "$config_file: $Script is needed\n"  unless $APP_CONF;
-die "$config_file: database is needed\n" unless $DB_CONF;
+die "$config_file: database is needed\n" unless $occ->dbic;
 die "$config_file: timezone is needed\n" unless $TIMEZONE;
 
-my $DB = OpenCloset::Schema->connect(
-    { dsn => $DB_CONF->{dsn}, user => $DB_CONF->{user}, password => $DB_CONF->{pass}, %{ $DB_CONF->{opts} }, } );
+my $DB = OpenCloset::Schema->connect( $occ->dbic );
 
 our %EVENT_MAP = (
     'seoul-2017' => 'wings',
@@ -42,7 +39,7 @@ sub _collect_event_stat_daily {
     my $fn_name = $EVENT_MAP{$name} || $name;
     my $today = DateTime->today( time_zone => $TIMEZONE );
     my $date = $today->clone->subtract( days => 1 );
-    my $fn = 'event_' . $fn_name;
+    my $fn = 'OpenCloset::Cron::Visitor::event_' . $fn_name;
     my $count;
     {
         no strict 'refs';
@@ -89,7 +86,7 @@ my $worker1 = do {
 
             my $today = DateTime->today( time_zone => $TIMEZONE );
             my $date = $today->clone->subtract( days => 1 );
-            my $count   = visitor_count( $DB, $date );
+            my $count   = OpenCloset::Cron::Visitor::visitor_count( $DB, $date );
             my $offline = $count->{offline};
             my $online  = $count->{online};
 
@@ -343,11 +340,54 @@ my $worker10 = do {
     );
 };
 
+my $worker11 = do {
+    my $w;
+    $w = OpenCloset::Cron::Worker->new(
+        name      => 'insert_event_gwangju201801_daily', # 일일 gwangju201801 방문자 수
+        cron      => '16 00 * * *',
+        time_zone => $TIMEZONE,
+        cb        => sub {
+            my $name = $w->name;
+            my $cron = $w->cron;
+            AE::log( info => "$name\[$cron] launched" );
+            _collect_event_stat_daily('gwangju201801');
+        }
+    );
+};
+
+my $worker12 = do {
+    my $w;
+    $w = OpenCloset::Cron::Worker->new(
+        name      => 'insert_event_samsunglife201801_daily', # 일일 samsunglife201801 방문자 수
+        cron      => '17 00 * * *',
+        time_zone => $TIMEZONE,
+        cb        => sub {
+            my $name = $w->name;
+            my $cron = $w->cron;
+            AE::log( info => "$name\[$cron] launched" );
+            _collect_event_stat_daily('samsunglife201801');
+        }
+    );
+};
+
 my $cron = OpenCloset::Cron->new(
     aelog   => $APP_CONF->{aelog},
     port    => $APP_CONF->{port},
     delay   => $APP_CONF->{delay},
-    workers => [ $worker1, $worker2, $worker3, $worker4, $worker5, $worker6, $worker7, $worker8, $worker9, $worker10 ],
+    workers => [
+        $worker1,
+        $worker2,
+        $worker3,
+        $worker4,
+        $worker5,
+        $worker6,
+        $worker7,
+        $worker8,
+        $worker9,
+        $worker10,
+        $worker11,
+        $worker12,
+    ],
 );
 
 $cron->start;

@@ -3,6 +3,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+## [v0.3.4] - Tue, 01 May 2018 23:28:57 +0900
+
+### Added
+- samsunglife201801 통계 수집 (#11)
+- gwangju201801 통계 수집 (#9)
+
 ## [v0.3.3] - Fri, 23 Feb 2018 14:35:34 +0900
 
 ### Changed
