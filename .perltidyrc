@@ -20,7 +20,7 @@
 -bt=1   # brace tightness
 -sbt=1  # square bracket tightness
 -bbt=0  # block brace tightness
-#-boc    # break at old comma breakpoints
+-boc    # break at old comma breakpoints
 -cab=1
 
 -nsfp   # no space after function
