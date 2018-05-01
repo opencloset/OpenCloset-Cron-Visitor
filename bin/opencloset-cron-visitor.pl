@@ -9,8 +9,18 @@ use Getopt::Long::Descriptive;
 use DateTime;
 
 use OpenCloset::Config;
-use OpenCloset::Cron::Visitor
-    qw/visitor_count event_wings event_linkstart event_gwanak event_10bob event_happybean event_incheonjob event_anyangyouth event_hanshin_univ event_gunpo/;
+use OpenCloset::Cron::Visitor qw(
+    event_10bob
+    event_anyangyouth
+    event_gunpo
+    event_gwanak
+    event_hanshin_univ
+    event_happybean
+    event_incheonjob
+    event_linkstart
+    event_wings
+    visitor_count
+);
 use OpenCloset::Cron::Worker;
 use OpenCloset::Cron;
 use OpenCloset::Schema;
