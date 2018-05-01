@@ -7,6 +7,7 @@ require Exporter;
     event_anyangyouth
     event_gunpo
     event_gwanak
+    event_gwangju201801
     event_hanshin_univ
     event_happybean
     event_incheonjob
@@ -86,6 +87,10 @@ OpenCloset::Cron::Visitor - 방문자수와 관려된 cronjob
 =item *
 
 일일 군포시 이벤트 방문/미방문수를 계산 (AM 00:15)
+
+=item *
+
+일일 gwangju201801 이벤트 방문/미방문수를 계산 (AM 00:16)
 
 =back
 
@@ -482,6 +487,18 @@ sub event_gunpo {
     my ( $schema, $date ) = @_;
     return unless $date;
     return _event_daily( $schema, $date, 'gunpo' );
+}
+
+=head2 event_gwangju201801( $schema, $date )
+
+gwangju201801 이벤트
+
+=cut
+
+sub event_gwangju201801 {
+    my ( $schema, $date ) = @_;
+    return unless $date;
+    return _event_daily( $schema, $date, 'gwangju201801' );
 }
 
 =head2 _event_daily($schema, $date, $event_name)
