@@ -3,6 +3,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Added
+- travis-ci 에서 docker image 를 build
+
 ## [v0.3.4] - Tue, 01 May 2018 23:28:57 +0900
 
 ### Added
