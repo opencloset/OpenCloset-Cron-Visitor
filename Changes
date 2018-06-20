@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ### Added
 - goyang201801 통계 수집 (#13)
+
+## [v0.3.5] - Fri May 4 17:08:30 2018 +0900
+
+### Added
 - travis-ci 에서 docker image 를 build
 
 ## [v0.3.4] - Tue, 01 May 2018 23:28:57 +0900
