@@ -3,6 +3,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+## [v0.3.6] - Wed, 20 Jun 2018 14:24:20 +0900
+
+### Added
+- goyang201801 통계 수집 (#13)
+
+## [v0.3.5] - Fri May 4 17:08:30 2018 +0900
+
 ### Added
 - travis-ci 에서 docker image 를 build
 

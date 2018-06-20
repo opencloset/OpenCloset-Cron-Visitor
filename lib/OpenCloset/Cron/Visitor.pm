@@ -5,6 +5,7 @@ require Exporter;
 @EXPORT_OK = qw(
     event_10bob
     event_anyangyouth
+    event_goyang201801
     event_gunpo
     event_gwanak
     event_gwangju201801
@@ -96,6 +97,10 @@ OpenCloset::Cron::Visitor - 방문자수와 관려된 cronjob
 =item *
 
 일일 samsunglife201801 이벤트 방문/미방문수를 계산 (AM 00:17)
+
+=item *
+
+일일 goyang201801 이벤트 방문/미방문수를 계산 (AM 00:18)
 
 =back
 
@@ -516,6 +521,18 @@ sub event_samsunglife201801 {
     my ( $schema, $date ) = @_;
     return unless $date;
     return _event_daily( $schema, $date, 'samsunglife201801' );
+}
+
+=head2 event_goyang201801( $schema, $date )
+
+goyang201801 이벤트
+
+=cut
+
+sub event_goyang201801 {
+    my ( $schema, $date ) = @_;
+    return unless $date;
+    return _event_daily( $schema, $date, 'goyang201801' );
 }
 
 =head2 _event_daily($schema, $date, $event_name)
