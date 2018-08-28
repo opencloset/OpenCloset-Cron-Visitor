@@ -385,6 +385,21 @@ my $worker13 = do {
     );
 };
 
+my $worker14 = do {
+    my $w;
+    $w = OpenCloset::Cron::Worker->new(
+        name      => 'insert_event_yongbin201801_daily', # 일일 yongbin201801 방문자 수
+        cron      => '19 00 * * *',
+        time_zone => $TIMEZONE,
+        cb        => sub {
+            my $name = $w->name;
+            my $cron = $w->cron;
+            AE::log( info => "$name\[$cron] launched" );
+            _collect_event_stat_daily('yongin201801');
+        }
+    );
+};
+
 my $cron = OpenCloset::Cron->new(
     aelog   => $APP_CONF->{aelog},
     port    => $APP_CONF->{port},
@@ -403,6 +418,7 @@ my $cron = OpenCloset::Cron->new(
         $worker11,
         $worker12,
         $worker13,
+        $worker14,
     ],
 );
 
