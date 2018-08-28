@@ -15,6 +15,7 @@ require Exporter;
     event_linkstart
     event_samsunglife201801
     event_wings
+    event_yongbin201801
     visitor_count
 );
 
@@ -101,6 +102,10 @@ OpenCloset::Cron::Visitor - 방문자수와 관려된 cronjob
 =item *
 
 일일 goyang201801 이벤트 방문/미방문수를 계산 (AM 00:18)
+
+=item *
+
+일일 yongin201801 이벤트 방문/미방문수를 계산 (AM 00:19)
 
 =back
 
@@ -533,6 +538,18 @@ sub event_goyang201801 {
     my ( $schema, $date ) = @_;
     return unless $date;
     return _event_daily( $schema, $date, 'goyang201801' );
+}
+
+=head2 event_yongin201801( $schema, $date )
+
+yongin201801 이벤트
+
+=cut
+
+sub event_yongin201801 {
+    my ( $schema, $date ) = @_;
+    return unless $date;
+    return _event_daily( $schema, $date, 'yongin201801' );
 }
 
 =head2 _event_daily($schema, $date, $event_name)

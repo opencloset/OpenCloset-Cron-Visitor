@@ -1,6 +1,6 @@
 # OpenCloset-Cron-Visitor #
 
-[![Build Status](https://travis-ci.org/opencloset/OpenCloset-Cron-Visitor.svg?branch=v0.3.6)](https://travis-ci.org/opencloset/OpenCloset-Cron-Visitor)
+[![Build Status](https://travis-ci.org/opencloset/OpenCloset-Cron-Visitor.svg?branch=v0.3.7)](https://travis-ci.org/opencloset/OpenCloset-Cron-Visitor)
 
 예약/방문/미방문/대여 수와 이벤트 수치를 통계용 table 인 visitor 에 넣어주는 cronjob
 
@@ -14,6 +14,10 @@
 - 일일 안양시 청년옷장 이벤트 방문/미방문수를 계산 (AM 00:13)
 - 일일 한신대학교 이벤트 방문/미방문수를 계산 (AM 00:14)
 - 일일 군포시 이벤트 방문/미방문수를 계산 (AM 00:15)
+- 일일 광주시 이벤트 방문/미방문수를 계산 (AM 00:16)
+- 일일 삼성생명 이벤트 방문/미방문수를 계산 (AM 00:17)
+- 일일 고양시 이벤트 방문/미방문수를 계산 (AM 00:18)
+- 일일 용인시 이벤트 방문/미방문수를 계산 (AM 00:19)
 
 ## Build docker image ##
 
