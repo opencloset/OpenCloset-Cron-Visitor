@@ -15,7 +15,7 @@ require Exporter;
     event_linkstart
     event_samsunglife201801
     event_wings
-    event_yongbin201801
+    event_yongin201801
     visitor_count
 );
 

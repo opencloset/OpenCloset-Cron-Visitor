@@ -388,7 +388,7 @@ my $worker13 = do {
 my $worker14 = do {
     my $w;
     $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_yongbin201801_daily', # 일일 yongbin201801 방문자 수
+        name      => 'insert_event_yongin201801_daily', # 일일 yongin201801 방문자 수
         cron      => '19 00 * * *',
         time_zone => $TIMEZONE,
         cb        => sub {
