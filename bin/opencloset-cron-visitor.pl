@@ -200,7 +200,7 @@ my $worker3 = do {
 
             my $today = DateTime->today( time_zone => $TIMEZONE );
             my $date = $today->clone->subtract( days => 1 );
-            my $count = event_linkstart( $DB, $date );
+            my $count = OpenCloset::Cron::Visitor::event_linkstart( $DB, $date );
 
             for my $key (qw/offline online/) {
                 my $stat = $count->{$key};
