@@ -2,6 +2,9 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
+
+## [v0.3.8] - Sat, 15 Dec 2018 20:21:14 +0900
+
 ### Removed
 - 이벤트가 끝난 linkstart 통계수집을 삭제 (#17)
 
