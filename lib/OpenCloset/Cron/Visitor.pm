@@ -3,19 +3,9 @@ package OpenCloset::Cron::Visitor;
 require Exporter;
 @ISA       = qw( Exporter );
 @EXPORT_OK = qw(
-    event_10bob
-    event_anyangyouth
-    event_goyang201801
-    event_gunpo
-    event_gwanak
-    event_gwangju201801
-    event_hanshin_univ
-    event_happybean
-    event_incheonjob
     event_linkstart
-    event_samsunglife201801
     event_wings
-    event_yongbin201801
+    event_common
     visitor_count
 );
 
@@ -65,47 +55,7 @@ OpenCloset::Cron::Visitor - 방문자수와 관려된 cronjob
 
 =item *
 
-일일 관악고용센터 이벤트 방문/미방문수를 계산 (AM 00:09)
-
-=item *
-
-일일 십시일밥 이벤트 방문/미방문수를 계산 (AM 00:10)
-
-=item *
-
-일일 해피빈캠페인 이벤트 방문/미방문수를 계산 (AM 00:11)
-
-=item *
-
-일일 인천광역시 일자리정책과 이벤트 방문/미방문수를 계산 (AM 00:12)
-
-=item *
-
-일일 안양시 청년옷장 이벤트 방문/미방문수를 계산 (AM 00:13)
-
-=item *
-
-일일 한신대학교 이벤트 방문/미방문수를 계산 (AM 00:14)
-
-=item *
-
-일일 군포시 이벤트 방문/미방문수를 계산 (AM 00:15)
-
-=item *
-
-일일 gwangju201801 이벤트 방문/미방문수를 계산 (AM 00:16)
-
-=item *
-
-일일 samsunglife201801 이벤트 방문/미방문수를 계산 (AM 00:17)
-
-=item *
-
-일일 goyang201801 이벤트 방문/미방문수를 계산 (AM 00:18)
-
-=item *
-
-일일 yongin201801 이벤트 방문/미방문수를 계산 (AM 00:19)
+일일 이벤트 방문/미방문수를 계산 (AM 00:10)
 
 =back
 
@@ -418,138 +368,16 @@ sub event_linkstart {
     };
 }
 
-=head2 event_gwanak( $schema, $date )
+=head2 event_common( $schema, $date, $name )
 
-관악고용센터 방문자 수
-
-=cut
-
-sub event_gwanak {
-    my ( $schema, $date ) = @_;
-    return unless $date;
-    return _event_daily( $schema, $date, 'gwanak' );
-}
-
-=head2 event_10bob( $schema, $date )
-
-십시일밥 방문자 수
+C<$name> 이벤트 방문자 수
 
 =cut
 
-sub event_10bob {
-    my ( $schema, $date ) = @_;
+sub event_common {
+    my ( $schema, $date, $name ) = @_;
     return unless $date;
-    return _event_daily( $schema, $date, '10bob' );
-}
-
-=head2 event_happybean( $schema, $date )
-
-해피빈캠페인 방문자 수
-
-=cut
-
-sub event_happybean {
-    my ( $schema, $date ) = @_;
-    return unless $date;
-    return _event_daily( $schema, $date, '해피빈캠페인' );
-}
-
-=head2 event_incheonjob( $schema, $date )
-
-인천광역시 일자리정책과 이벤트
-
-=cut
-
-sub event_incheonjob {
-    my ( $schema, $date ) = @_;
-    return unless $date;
-    return _event_daily( $schema, $date, 'inchoenjob' );
-}
-
-=head2 event_anyangyouth( $schema, $date )
-
-안양시 청년옷장 이벤트
-
-2017년도 쿠폰은 B<anyangyouth> 쿠폰 제한 작업이 추가되면서 2018년도 쿠폰이름이 B<anyang201801> 으로 변경됨
-
-=cut
-
-sub event_anyangyouth {
-    my ( $schema, $date ) = @_;
-    return unless $date;
-    return _event_daily( $schema, $date, 'anyang201801' );
-}
-
-=head2 event_hanshin_univ( $schema, $date )
-
-한신대학교 이벤트
-
-=cut
-
-sub event_hanshin_univ {
-    my ( $schema, $date ) = @_;
-    return unless $date;
-    return _event_daily( $schema, $date, 'hanshin_univ' );
-}
-
-=head2 event_gunpo( $schema, $date )
-
-군포시 이벤트
-
-=cut
-
-sub event_gunpo {
-    my ( $schema, $date ) = @_;
-    return unless $date;
-    return _event_daily( $schema, $date, 'gunpo' );
-}
-
-=head2 event_gwangju201801( $schema, $date )
-
-gwangju201801 이벤트
-
-=cut
-
-sub event_gwangju201801 {
-    my ( $schema, $date ) = @_;
-    return unless $date;
-    return _event_daily( $schema, $date, 'gwangju201801' );
-}
-
-=head2 event_samsunglife201801( $schema, $date )
-
-samsunglife201801 이벤트
-
-=cut
-
-sub event_samsunglife201801 {
-    my ( $schema, $date ) = @_;
-    return unless $date;
-    return _event_daily( $schema, $date, 'samsunglife201801' );
-}
-
-=head2 event_goyang201801( $schema, $date )
-
-goyang201801 이벤트
-
-=cut
-
-sub event_goyang201801 {
-    my ( $schema, $date ) = @_;
-    return unless $date;
-    return _event_daily( $schema, $date, 'goyang201801' );
-}
-
-=head2 event_yongin201801( $schema, $date )
-
-yongin201801 이벤트
-
-=cut
-
-sub event_yongin201801 {
-    my ( $schema, $date ) = @_;
-    return unless $date;
-    return _event_daily( $schema, $date, 'yongin201801' );
+    return _event_daily( $schema, $date, $name );
 }
 
 =head2 _event_daily($schema, $date, $event_name)
