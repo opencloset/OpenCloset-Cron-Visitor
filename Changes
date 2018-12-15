@@ -2,6 +2,8 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
+### Changed
+- 반복되던 통계수집 worker 를 `event` 테이블을 활용해서 대체 함 (#17)
 
 ## [v0.3.7] - Wed, 29 Aug 2018 04:42:59 +0900
 
