@@ -3,6 +3,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Changed
+- rename seoul-2018 to seoul-2018-1
+
 ## [v0.3.8] - Sat, 15 Dec 2018 20:21:14 +0900
 
 ### Removed

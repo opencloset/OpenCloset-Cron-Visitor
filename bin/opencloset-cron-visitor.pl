@@ -28,8 +28,7 @@ die "$config_file: timezone is needed\n" unless $TIMEZONE;
 my $DB = OpenCloset::Schema->connect( $occ->dbic );
 
 our %EVENT_MAP = (
-    'seoul-2017' => 'wings',
-    'seoul-2018' => 'wings',
+    'seoul-2018-1' => 'wings',
 );
 
 sub _collect_event_stat_daily {
@@ -146,7 +145,7 @@ my $worker2 = do {
             my $name = $w->name;
             my $cron = $w->cron;
             AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('seoul-2018');
+            _collect_event_stat_daily('seoul-2018-1');
 
             my $today = DateTime->today( time_zone => $TIMEZONE );
             my $date = $today->clone->subtract( days => 1 );
@@ -156,7 +155,7 @@ my $worker2 = do {
                 my $daily = $DB->resultset('Visitor')->search(
                     {
                         date   => "$date",
-                        event  => 'seoul-2018',
+                        event  => 'seoul-2018-1',
                         online => $online,
                     },
                     { rows => 1 }
