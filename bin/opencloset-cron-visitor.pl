@@ -195,54 +195,6 @@ my $worker2 = do {
 my $worker3 = do {
     my $w;
     $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_linkstart_daily', # 일일 linkstart 방문자 수
-        cron      => '08 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-
-            my $today = DateTime->today( time_zone => $TIMEZONE );
-            my $date = $today->clone->subtract( days => 1 );
-            my $count = event_linkstart( $DB, $date );
-
-            for my $key (qw/offline online/) {
-                my $stat = $count->{$key};
-                my $online = $key eq 'online' ? 1 : 0;
-
-                $DB->resultset('Visitor')->create(
-                    {
-                        date                     => "$date",
-                        online                   => $online,
-                        visited                  => $stat->{male}{visited} + $stat->{female}{visited},
-                        visited_male             => $stat->{male}{visited},
-                        visited_female           => $stat->{female}{visited},
-                        visited_age_10           => $stat->{10}{visited},
-                        visited_age_20           => $stat->{20}{visited},
-                        visited_age_30           => $stat->{30}{visited},
-                        visited_rate_30          => $stat->{rate_30}{visited},
-                        visited_rate_30_sum      => $stat->{rate_30}{sum},
-                        visited_rate_30_discount => $stat->{rate_30}{disstat},
-
-                        unvisited        => $stat->{male}{unvisited} + $stat->{female}{unvisited},
-                        unvisited_male   => $stat->{male}{unvisited},
-                        unvisited_female => $stat->{female}{unvisited},
-                        unvisited_age_10 => $stat->{10}{unvisited},
-                        unvisited_age_20 => $stat->{20}{unvisited},
-                        unvisited_age_30 => $stat->{30}{unvisited},
-
-                        event => 'linkstart',
-                    }
-                );
-            }
-        }
-    );
-};
-
-my $worker4 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
         name      => 'insert_allevent_daily', # 각 이벤트별 일일 방문 숫자
         cron      => '10 00 * * *',
         time_zone => $TIMEZONE,
@@ -275,7 +227,6 @@ my $cron = OpenCloset::Cron->new(
         $worker1,
         $worker2,
         $worker3,
-        $worker4,
     ],
 );
 
