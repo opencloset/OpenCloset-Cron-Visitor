@@ -33,17 +33,22 @@ our %EVENT_MAP = (
 );
 
 sub _collect_event_stat_daily {
-    my $name = shift;
+    my ($name, $common) = @_;
     return unless $name;
 
     my $fn_name = $EVENT_MAP{$name} || $name;
     my $today = DateTime->today( time_zone => $TIMEZONE );
     my $date = $today->clone->subtract( days => 1 );
-    my $fn = 'OpenCloset::Cron::Visitor::event_' . $fn_name;
     my $count;
-    {
-        no strict 'refs';
-        $count = $fn->( $DB, $date );
+
+    if ($common) {
+        $count = OpenCloset::Cron::Visitor::event_common($DB, $date, $name);
+    } else {
+        my $fn = 'OpenCloset::Cron::Visitor::event_' . $fn_name;
+        {
+            no strict 'refs';
+            $count = $fn->( $DB, $date );
+        }
     }
 
     for my $key (qw/offline online/) {
@@ -190,212 +195,26 @@ my $worker2 = do {
 my $worker3 = do {
     my $w;
     $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_linkstart_daily', # 일일 linkstart 방문자 수
-        cron      => '08 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-
-            my $today = DateTime->today( time_zone => $TIMEZONE );
-            my $date = $today->clone->subtract( days => 1 );
-            my $count = event_linkstart( $DB, $date );
-
-            for my $key (qw/offline online/) {
-                my $stat = $count->{$key};
-                my $online = $key eq 'online' ? 1 : 0;
-
-                $DB->resultset('Visitor')->create(
-                    {
-                        date                     => "$date",
-                        online                   => $online,
-                        visited                  => $stat->{male}{visited} + $stat->{female}{visited},
-                        visited_male             => $stat->{male}{visited},
-                        visited_female           => $stat->{female}{visited},
-                        visited_age_10           => $stat->{10}{visited},
-                        visited_age_20           => $stat->{20}{visited},
-                        visited_age_30           => $stat->{30}{visited},
-                        visited_rate_30          => $stat->{rate_30}{visited},
-                        visited_rate_30_sum      => $stat->{rate_30}{sum},
-                        visited_rate_30_discount => $stat->{rate_30}{disstat},
-
-                        unvisited        => $stat->{male}{unvisited} + $stat->{female}{unvisited},
-                        unvisited_male   => $stat->{male}{unvisited},
-                        unvisited_female => $stat->{female}{unvisited},
-                        unvisited_age_10 => $stat->{10}{unvisited},
-                        unvisited_age_20 => $stat->{20}{unvisited},
-                        unvisited_age_30 => $stat->{30}{unvisited},
-
-                        event => 'linkstart',
-                    }
-                );
-            }
-        }
-    );
-};
-
-my $worker4 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_gwanak_daily', # 일일 관악고용센터 방문자 수
-        cron      => '09 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('gwanak');
-        }
-    );
-};
-
-my $worker5 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_10bob_daily', # 일일 십시일밥 방문자 수
+        name      => 'insert_allevent_daily', # 각 이벤트별 일일 방문 숫자
         cron      => '10 00 * * *',
         time_zone => $TIMEZONE,
         cb        => sub {
             my $name = $w->name;
             my $cron = $w->cron;
             AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('10bob');
-        }
-    );
-};
+            my $today = DateTime->today( time_zone => $TIMEZONE );
+            my $events = $DB->resultset('Event')->search({
+                start_date          => { '<=' => "$today" },
+                end_date            => { '>=' => "$today" },
+                'event_type.domain' => 'rental'
+            }, {
+                join => ['event_type']
+            });
 
-my $worker6 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_happybean_daily', # 일일 해피빈캠페인 방문자 수
-        cron      => '11 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('happybean');
-        }
-    );
-};
-
-my $worker7 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_incheonjob_daily', # 일일 인천광역시 일자리정책과 방문자 수
-        cron      => '12 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('incheonjob');
-        }
-    );
-};
-
-my $worker8 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_anyangyouth_daily', # 일일 안양시 청년옷장 방문자 수
-        cron      => '13 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('anyangyouth');
-        }
-    );
-};
-
-my $worker9 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_hanshin_univ_daily', # 일일 한신대학교 방문자 수
-        cron      => '14 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('hanshin_univ');
-        }
-    );
-};
-
-my $worker10 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_gunpo_daily', # 일일 한신대학교 방문자 수
-        cron      => '15 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('gunpo');
-        }
-    );
-};
-
-my $worker11 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_gwangju201801_daily', # 일일 gwangju201801 방문자 수
-        cron      => '16 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('gwangju201801');
-        }
-    );
-};
-
-my $worker12 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_samsunglife201801_daily', # 일일 samsunglife201801 방문자 수
-        cron      => '17 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('samsunglife201801');
-        }
-    );
-};
-
-my $worker13 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_goyang201801_daily', # 일일 goyang201801 방문자 수
-        cron      => '18 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('goyang201801');
-        }
-    );
-};
-
-my $worker14 = do {
-    my $w;
-    $w = OpenCloset::Cron::Worker->new(
-        name      => 'insert_event_yongbin201801_daily', # 일일 yongbin201801 방문자 수
-        cron      => '19 00 * * *',
-        time_zone => $TIMEZONE,
-        cb        => sub {
-            my $name = $w->name;
-            my $cron = $w->cron;
-            AE::log( info => "$name\[$cron] launched" );
-            _collect_event_stat_daily('yongin201801');
+            while (my $event = $events->next) {
+                next if $event->title eq '취업날개';
+                _collect_event_stat_daily($event->name, 1);
+            }
         }
     );
 };
@@ -408,17 +227,6 @@ my $cron = OpenCloset::Cron->new(
         $worker1,
         $worker2,
         $worker3,
-        $worker4,
-        $worker5,
-        $worker6,
-        $worker7,
-        $worker8,
-        $worker9,
-        $worker10,
-        $worker11,
-        $worker12,
-        $worker13,
-        $worker14,
     ],
 );
 
