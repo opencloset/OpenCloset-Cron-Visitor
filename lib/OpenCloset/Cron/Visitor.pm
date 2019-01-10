@@ -211,13 +211,14 @@ sub _event_daily {
         30     => { visited => 0, unvisited => 0 },
     );
 
+    my $event = $schema->resultset('Event')->search({ name => $event_name })->next;
     my $year = $date->year;
     my $rs   = $schema->resultset('Order')->search(
         {
             'me.online'     => 0,
             'me.status_id'  => { 'not in' => [ $NOT_VISITED, $RESERVATED ] },
             'coupon.status' => 'used',
-            'coupon.desc' => { -like => $event_name . '%' },
+            'event.id'      => $event->id,
         },
         {
             select => [
@@ -228,7 +229,11 @@ sub _event_daily {
                 'gender',
                 'birth'
             ],
-            join => [ 'booking', 'coupon', { user => 'user_info' } ]
+            join => [
+                'booking',
+                { coupon => 'event' },
+                { user   => 'user_info' },
+            ]
         }
     )->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
 
@@ -249,7 +254,7 @@ sub _event_daily {
             'me.online'     => 0,
             'me.status_id'  => { -in => [ $NOT_VISITED, $RESERVATED ] },
             'coupon.status' => 'reserved',
-            'coupon.desc' => { -like => $event_name . '%' },
+            'event.id'      => $event->id,
         },
         {
             select => [
@@ -260,7 +265,11 @@ sub _event_daily {
                 'gender',
                 'birth'
             ],
-            join => [ 'booking', 'coupon', { user => 'user_info' } ]
+            join => [
+                'booking',
+                { coupon => 'event' },
+                { user   => 'user_info' }
+            ]
         }
     )->search_literal( 'DATE(`booking`.`date`) = ?', $date->ymd );
 
@@ -288,7 +297,7 @@ sub _event_daily {
             },
             'me.status_id' => { -in => [ $RENTAL, $RETURNED ] }, # 대여중 혹은 반납
             'coupon.status' => 'used',
-            'coupon.desc'   => { -like => $event_name . '%' },
+            'event.id'      => $event->id,
         },
         {
             select => [
@@ -299,7 +308,10 @@ sub _event_daily {
                 'gender',
                 'birth'
             ],
-            join => [ 'coupon', { user => 'user_info' } ]
+            join => [
+                { coupon => 'event' },
+                { user   => 'user_info' }
+            ]
         }
     );
 
@@ -329,7 +341,7 @@ sub _event_daily {
             'me.rental_date' => undef,
             'me.wearon_date' => $date->datetime(),
             'coupon.status'  => 'used',
-            'coupon.desc'    => { -like => $event_name . '%' },
+            'event.id'       => $event->id,
         },
         {
             select => [
@@ -340,7 +352,10 @@ sub _event_daily {
                 'gender',
                 'birth'
             ],
-            join => [ 'coupon', { user => 'user_info' } ]
+            join => [
+                { coupon => 'event' },
+                { user   => 'user_info' }
+            ]
         }
     );
 
