@@ -3,6 +3,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+## [v0.3.10] - Fri, 11 Jan 2019 00:09:40 +0900
+
+### Fixed
+- 잘못된 통계수집 쿼리 변경 (#19)
+
 ## [v0.3.9] - Sun, 16 Dec 2018 00:35:37 +0900
 
 ### Changed
