@@ -2,6 +2,8 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
+### Changed
+- 서울시 이벤트 역시 일반적인 이벤트처럼 다룸 (#20)
 
 ## [v0.3.10] - Fri, 11 Jan 2019 00:09:40 +0900
 
