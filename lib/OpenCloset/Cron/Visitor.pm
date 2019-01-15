@@ -3,7 +3,6 @@ package OpenCloset::Cron::Visitor;
 require Exporter;
 @ISA       = qw( Exporter );
 @EXPORT_OK = qw(
-    event_wings
     event_common
     visitor_count
 );
@@ -43,10 +42,6 @@ OpenCloset::Cron::Visitor - 방문자수와 관려된 cronjob
 =item *
 
 일일 방문자수를 계산 (AM 00:05)
-
-=item *
-
-일일 취업날개 이벤트 방문/미방문수를 계산 (AM 00:07)
 
 =item *
 
@@ -169,18 +164,6 @@ sub visitor_count_online {
     }
 
     return \%visitor;
-}
-
-=head2 event_wings( $schema, $date )
-
-취업날개 일별 방문자 수
-
-=cut
-
-sub event_wings {
-    my ( $schema, $date ) = @_;
-    return unless $date;
-    return _event_daily( $schema, $date, 'seoul-2018' );
 }
 
 =head2 event_common( $schema, $date, $name )
