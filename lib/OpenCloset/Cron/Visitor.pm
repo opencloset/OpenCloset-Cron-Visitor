@@ -166,24 +166,24 @@ sub visitor_count_online {
     return \%visitor;
 }
 
-=head2 event_common( $schema, $date, $name )
+=head2 event_common( $schema, $date, $event )
 
 C<$name> 이벤트 방문자 수
 
 =cut
 
 sub event_common {
-    my ( $schema, $date, $name ) = @_;
+    my ( $schema, $date, $event ) = @_;
     return unless $date;
-    return _event_daily( $schema, $date, $name );
+    return _event_daily( $schema, $date, $event );
 }
 
-=head2 _event_daily($schema, $date, $event_name)
+=head2 _event_daily($schema, $date, $event)
 
 =cut
 
 sub _event_daily {
-    my ( $schema, $date, $event_name ) = @_;
+    my ( $schema, $date, $event ) = @_;
     return unless $date;
 
     my %visitor = (
@@ -194,7 +194,6 @@ sub _event_daily {
         30     => { visited => 0, unvisited => 0 },
     );
 
-    my $event = $schema->resultset('Event')->search({ name => $event_name })->next;
     my $year = $date->year;
     my $rs   = $schema->resultset('Order')->search(
         {

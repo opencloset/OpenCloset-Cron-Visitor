@@ -28,14 +28,15 @@ die "$config_file: timezone is needed\n" unless $TIMEZONE;
 my $DB = OpenCloset::Schema->connect( $occ->dbic );
 
 sub _collect_event_stat_daily {
-    my $name = shift;
-    return unless $name;
+    my $event = shift;
+    return unless $event;
 
+    my $name = $event->name;
     my $today = DateTime->today( time_zone => $TIMEZONE );
     my $date = $today->clone->subtract( days => 1 );
     my $count;
 
-    $count = OpenCloset::Cron::Visitor::event_common($DB, $date, $name);
+    $count = OpenCloset::Cron::Visitor::event_common($DB, $date, $event);
     for my $key (qw/offline online/) {
         my $stat = $count->{$key};
         my $online = $key eq 'online' ? 1 : 0;
@@ -141,7 +142,7 @@ my $worker2 = do {
             });
 
             while (my $event = $events->next) {
-                _collect_event_stat_daily($event->name);
+                _collect_event_stat_daily($event);
             }
         }
     );

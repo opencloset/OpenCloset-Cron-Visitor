@@ -3,6 +3,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 
 ## [Unreleased]
 
+## [v0.3.12] Thu, 03 Oct 2019 17:22:58 +0900
+### Fixed
+- 같은 이름의 n회차 이벤트 통계가 중복으로 쌓이는 것을 수정 (#21)
+
 ## [v0.3.11] - Tue, 15 Jan 2019 14:27:11 +0900
 
 ### Changed
